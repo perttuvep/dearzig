@@ -16,7 +16,7 @@ pub fn main() !void {
         rl.beginDrawing();
         rl.clearBackground(.black);
 
-        var buf: [128:0]u8 = [_:0]u8{0} ** 128;
+        var buf: [128:0]u8 = @splat(0);
         rlimgui.begin();
 
         const t: f32 = @floatCast(rl.getTime());
@@ -45,7 +45,7 @@ pub fn main() !void {
         imgui.ImGui_Text("FPS:");
         imgui.ImGui_SameLine();
         var fps_buf: [32]u8 = undefined;
-        const fps_str = std.fmt.bufPrintZ(&fps_buf, "{d}", .{rl.getFPS()}) catch "?";
+        const fps_str = std.fmt.bufPrintSentinel(&fps_buf, "{d}", .{rl.getFPS()}, 0) catch "?";
         imgui.ImGui_Text(fps_str);
 
         imgui.ImGui_End();

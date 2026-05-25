@@ -4,12 +4,20 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const c = b.addTranslateC(.{
+        .root_source_file = b.path("src/c.h"),
+        .target = target,
+        .optimize = optimize,
+    });
+    c.addIncludePath(b.path("common/imgui"));
+
     const module = b.addModule("dearzig", .{
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
     });
 
+    module.addImport("c", c.createModule());
     module.addIncludePath(b.path("common/imgui"));
     module.addIncludePath(b.path("common/imgui/backends"));
     module.addCSourceFile(.{ .file = b.path("common/imgui/imgui.cpp"), .flags = &.{} });
@@ -29,10 +37,12 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("example/main.zig"),
             .target = target,
             .optimize = optimize,
+            .link_libcpp = true,
         }),
+        .use_llvm = true,
+        .use_lld = true,
     });
     exe.root_module.addImport("dearzig", module);
-    exe.linkLibCpp();
     b.installArtifact(exe);
 
     const raylib_dep = b.dependency("raylib_zig", .{
@@ -48,5 +58,5 @@ pub fn build(b: *std.Build) void {
 
     // also for the example exe
     exe.root_module.addImport("raylib", raylib);
-    exe.linkLibrary(raylib_artifact);
+    exe.root_module.linkLibrary(raylib_artifact);
 }
